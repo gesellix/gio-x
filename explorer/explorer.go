@@ -226,6 +226,35 @@ func (e *Explorer) CreateFile(name string) (io.WriteCloser, error) {
 	return e.exportFile(name)
 }
 
+// SaveFilePath opens the file selector like CreateFile, but returns the
+// chosen path instead of a writer: the file is neither created nor
+// truncated, so the caller decides when and how to write it, for example
+// to a temporary file that it renames over the path once the content is
+// complete. An existing file then stays intact until that point, and a
+// crash leaves no empty file behind. In a sandbox (the macOS App Sandbox,
+// a Flatpak) the selector may grant access to the chosen file only, not to
+// its directory.
+//
+// It is available where the selector returns a path in the file system
+// (macOS, Linux, Windows); elsewhere it returns ErrNotAvailable, use
+// CreateFile there.
+//
+// It's a blocking call, you should call it on a separated goroutine. Like
+// ChooseFile and CreateFile, only one can happen at the same time, for each
+// app.Window/Explorer.
+func (e *Explorer) SaveFilePath(name string) (string, error) {
+	if e == nil {
+		return "", ErrNotAvailable
+	}
+
+	if runtime.GOOS != "js" {
+		e.mutex.Lock()
+		defer e.mutex.Unlock()
+	}
+
+	return e.exportPath(name)
+}
+
 var (
 	DefaultExplorer *Explorer
 )

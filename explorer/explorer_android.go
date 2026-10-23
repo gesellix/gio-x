@@ -82,6 +82,10 @@ func (e *Explorer) listenEvents(evt event.Event) {
 	}
 }
 
+func (e *Explorer) exportPath(_ string) (string, error) {
+	return "", ErrNotAvailable
+}
+
 func (e *Explorer) exportFile(name string) (io.WriteCloser, error) {
 	go e.window.Run(func() {
 		err := jni.Do(jni.JVMFor(app.JavaVM()), func(env jni.Env) error {

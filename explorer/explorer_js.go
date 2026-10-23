@@ -21,6 +21,10 @@ func (e *Explorer) listenEvents(_ event.Event) {
 	// NO-OP
 }
 
+func (e *Explorer) exportPath(_ string) (string, error) {
+	return "", ErrNotAvailable
+}
+
 func (e *Explorer) exportFile(name string) (io.WriteCloser, error) {
 	return newFileWriter(name), nil
 }

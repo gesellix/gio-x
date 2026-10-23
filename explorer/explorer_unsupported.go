@@ -22,6 +22,10 @@ func (e *Explorer) listenEvents(_ event.Event) {}
 
 func (e *Explorer) readFile(_ string) (io.ReadCloser, error) { return nil, ErrNotAvailable }
 
+func (e *Explorer) exportPath(_ string) (string, error) {
+	return "", ErrNotAvailable
+}
+
 func (e *Explorer) exportFile(_ string) (io.WriteCloser, error) {
 	return nil, ErrNotAvailable
 }

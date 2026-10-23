@@ -57,6 +57,10 @@ func (e *Explorer) listenEvents(evt event.Event) {
 	}
 }
 
+func (e *Explorer) exportPath(_ string) (string, error) {
+	return "", ErrNotAvailable
+}
+
 func (e *Explorer) exportFile(name string) (io.WriteCloser, error) {
 	name = filepath.Join(os.TempDir(), name)
 

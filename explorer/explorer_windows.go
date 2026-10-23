@@ -103,6 +103,14 @@ func (e *Explorer) listenEvents(evt event.Event) {
 }
 
 func (e *Explorer) exportFile(name string) (io.WriteCloser, error) {
+	path, err := e.exportPath(name)
+	if err != nil {
+		return nil, err
+	}
+	return os.Create(path)
+}
+
+func (e *Explorer) exportPath(name string) (string, error) {
 	pathUTF16 := make([]uint16, _FilePathLength)
 	copy(pathUTF16, windows.StringToUTF16(name))
 
@@ -116,15 +124,15 @@ func (e *Explorer) exportFile(name string) (io.WriteCloser, error) {
 	}
 
 	if r, _, _ := _GetSaveFileName.Call(uintptr(unsafe.Pointer(&open))); r == 0 {
-		return nil, ErrUserDecline
+		return "", ErrUserDecline
 	}
 
 	path := windows.UTF16ToString(pathUTF16)
 	if len(path) == 0 {
-		return nil, ErrUserDecline
+		return "", ErrUserDecline
 	}
 
-	return os.Create(path)
+	return path, nil
 }
 
 func (e *Explorer) importFile(extensions ...string) (io.ReadCloser, error) {

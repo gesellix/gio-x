@@ -74,6 +74,15 @@ func extractURIsFromSignal(sig *dbus.Signal) []string {
 // exportFile requests that a dialog be opened to write a file with the given
 // name somewhere in the filesystem.
 func (e *Explorer) exportFile(fileName string) (io.WriteCloser, error) {
+	path, err := e.exportPath(fileName)
+	if err != nil {
+		return nil, err
+	}
+	return os.Create(path)
+}
+
+// exportPath opens the dialog of exportFile and returns the chosen path.
+func (e *Explorer) exportPath(fileName string) (string, error) {
 	var filepath string
 	if err := e.withDesktopPortal(func(conn *dbus.Conn, desktopPortal dbus.BusObject, config config) error {
 		// Invoke the OpenFile method.
@@ -114,9 +123,9 @@ func (e *Explorer) exportFile(fileName string) (io.WriteCloser, error) {
 		filepath = parsedURL.Path
 		return nil
 	}); err != nil {
-		return nil, err
+		return "", err
 	}
-	return os.Create(filepath)
+	return filepath, nil
 }
 
 // sanitizeSenderName converts the dbusSenderName into the form required in the

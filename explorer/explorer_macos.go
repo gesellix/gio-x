@@ -43,15 +43,26 @@ func (e *Explorer) listenEvents(evt event.Event) {
 }
 
 func (e *Explorer) exportFile(name string) (io.WriteCloser, error) {
+	path, err := e.exportPath(name)
+	if err != nil {
+		return nil, err
+	}
+	return os.Create(path)
+}
+
+func (e *Explorer) exportPath(name string) (string, error) {
 	cname := C.CString(name)
 	e.window.Run(func() { C.exportFile(e.view, cname, C.int32_t(e.id)) })
 
 	resp := <-e.result
 	if resp.error != nil {
-		return nil, resp.error
+		return "", resp.error
 	}
-	return resp.file.(io.WriteCloser), resp.error
-
+	path, ok := resp.file.(string)
+	if !ok {
+		return "", ErrNotAvailable
+	}
+	return path, nil
 }
 
 func (e *Explorer) importFile(extensions ...string) (io.ReadCloser, error) {
@@ -101,7 +112,8 @@ func importCallback(u *C.char, id int32) {
 //export exportCallback
 func exportCallback(u *C.char, id int32) {
 	if v, ok := active.Load(id); ok {
-		v.(*explorer).result <- newOSFile(u, os.Create)
+		path, err := selectedPath(u)
+		v.(*explorer).result <- result{file: path, error: err}
 	}
 }
 
